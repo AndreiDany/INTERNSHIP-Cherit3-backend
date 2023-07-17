@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\OrderedProduct;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -39,7 +40,8 @@ class OrderController extends Controller
 
             //adaugarea produsului comandat in baza de date
             $orderedProduct = new OrderedProduct();
-            $orderedProduct->order_id = $order->id;;
+            $orderedProduct->order_id = $order->id;
+            ;
             $orderedProduct->product_id = $productId;
             $orderedProduct->save();
 
@@ -64,8 +66,37 @@ class OrderController extends Controller
             'body' => $body
         ];
 
-        \Mail::to('andrei.dani26@yahoo.com')->send(new \App\Mail\MyTestMail($details));
+        $user = User::where('id', $clientId)->first();
+
+        \Mail::to($user['email'])->send(new \App\Mail\MyTestMail($details));
 
         return response()->json($request->all());
+    }
+
+    // Istoricul comenzilor unui anumit user
+    public function getOrders($userId)
+    {
+
+        $orders = Order::where('user_id', $userId)->get();
+
+        return $orders;
+    }
+
+    // Produsele corespunzaoare unei anumite comenzi
+    public function getOrder($orderId)
+    {
+        $orderedProducts = OrderedProduct::with('product')->where('order_id', $orderId)->get();
+
+        $productData = [];
+        foreach ($orderedProducts as $orderedProduct) {
+            $productData[] = [
+                'id' => $orderedProduct->id,
+                'productName' => $orderedProduct->product->name,
+                'productPrice' => $orderedProduct->product->price,
+                'productImage' => $orderedProduct->product->image,
+            ];
+        }
+
+        return response()->json($productData);
     }
 }

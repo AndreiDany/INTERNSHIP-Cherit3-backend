@@ -19,6 +19,10 @@ Route::post('/register', [App\Http\Controllers\API\UserController::class, 'regis
 
 //Ruta pentru trimitere comenzii, inclusiv trimiterea de email
 Route::post('send-order', [App\Http\Controllers\OrderController::class, 'sendOrder']);
+//Ruta pentru obtinerea comenzilor unui client
+Route::get('orders/{userId}', [App\Http\Controllers\OrderController::class, 'getOrders']);
+//Ruta pentru obtinerea produselor corespunzatoare unei comenzi
+Route::get('order/{orderId}', [App\Http\Controllers\OrderController::class, 'getOrder']);
 
 // Rutele pentru categorii
 Route::get('/category', [App\Http\Controllers\CategoryController::class, 'getAll']);
