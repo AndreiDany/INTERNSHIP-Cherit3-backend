@@ -41,7 +41,6 @@ class OrderController extends Controller
             //adaugarea produsului comandat in baza de date
             $orderedProduct = new OrderedProduct();
             $orderedProduct->order_id = $order->id;
-            ;
             $orderedProduct->product_id = $productId;
             $orderedProduct->save();
 

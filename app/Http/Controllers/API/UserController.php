@@ -1,11 +1,13 @@
 <?php
 namespace App\Http\Controllers\API;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Validator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserController extends Controller
 {
@@ -19,14 +21,17 @@ class UserController extends Controller
     {
         if (Auth::attempt(['email' => request('email'), 'password' => request('password')])) {
             $user = Auth::user();
+
+            $userRole = $user->role()->first();
+
             $user_id = $user->id;
             $user_name = $user->name;
-            $success['token'] = $user->createToken('MyApp')->accessToken;
-            //return response()->json(['success' => $success], $this-> successStatus);
-            return response()->json(['message' => "success", 'id' => $user_id, 'name' => $user_name], $this->successStatus);
+            $success['token'] = $user->createToken('MyApp', [$userRole->role])->accessToken;
+            return response()->json(['success' => $success, 'id' => $user_id, 'name' => $user_name], $this->successStatus);
+            //return response()->json(['message' => "success", 'id' => $user_id, 'name' => $user_name], $this->successStatus);
         } else {
-            //return response()->json(['error'=>'Unauthorised'], 401);
-            return response()->json(['message' => "error"], 401);
+            return response()->json(['error' => 'Unauthorised'], 401);
+            //return response()->json(['message' => "error"], 401);
         }
     }
     /** 
@@ -49,6 +54,13 @@ class UserController extends Controller
         $input = $request->all();
         $input['password'] = bcrypt($input['password']);
         $user = User::create($input);
+
+        // Atribuirea rolului "basic" utilizatorului creat
+        $role = new Role();
+        $role->user_id = $user->id;
+        $role->role = 'basic';
+        $role->save();
+
         $success['token'] = $user->createToken('MyApp')->accessToken;
         $success['name'] = $user->name;
         //return response()->json(['success' => $success], $this->successStatus);
@@ -63,5 +75,66 @@ class UserController extends Controller
     {
         $user = Auth::user();
         return response()->json(['success' => $user], $this->successStatus);
+    }
+
+    // CRUD
+    function getUsers(Request $request)
+    {
+
+        return User::get();
+    }
+
+    function addUser(Request $request)
+    {
+
+        return User::create($request->all());
+    }
+
+    function editUser(Request $request, $userId)
+    {
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'User not found.'
+            ], 403);
+        }
+
+        $user->update($request->all());
+
+        return response()->json(['message' => 'User updated successfully.']);
+    }
+
+    function deleteUser(Request $request, $userId) {
+
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'User not found.'
+            ], 403);
+        }
+
+        $user->delete();
+
+        return response()->json(['message' => 'User deleted successfully.']);
+    }
+
+    // Modificare basic user in admin
+    function makeAdmin(Request $request, $userId) {
+
+        try {
+            $user = User::findOrFail($userId);
+
+             // Actualizare coloană "role" la valoarea "admin"
+            $user->role()->update(['role' => 'admin']);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'User not found.'
+            ], 403);
+        }
+
+        return response()->json(['message' => 'Successfully.']);
     }
 }
