@@ -24,10 +24,9 @@ class UserController extends Controller
 
             $userRole = $user->role()->first();
 
-            $user_id = $user->id;
             $user_name = $user->name;
             $success['token'] = $user->createToken('MyApp', [$userRole->role])->accessToken;
-            return response()->json(['success' => $success, 'id' => $user_id, 'name' => $user_name], $this->successStatus);
+            return response()->json(['success' => $success, 'name' => $user_name], $this->successStatus);
             //return response()->json(['message' => "success", 'id' => $user_id, 'name' => $user_name], $this->successStatus);
         } else {
             return response()->json(['error' => 'Unauthorised'], 401);

@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\OrderedProduct;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
@@ -14,8 +15,10 @@ class OrderController extends Controller
     {
         $jsonData = $request->all();
 
+        $user = Auth::user();
+
         // Formatează JSON-ul
-        $clientId = $jsonData['clientId'];
+        $clientId = $user->id;
         $address = $jsonData['address'];
         $price = $jsonData['price'];
         $products = $jsonData['products'];
@@ -48,7 +51,7 @@ class OrderController extends Controller
 
         // Construirea corpului email-ului
         $body = "<h2>Cherit - comanda a fost plasata cu succes</h2>";
-        $body .= "<div style='margin-bottom: 20px;'><strong>ID Client:</strong> $clientId</div>";
+        $body .= "<div style='margin-bottom: 20px;'><strong>Buna </strong> $user->name</div>";
         $body .= "<div style='margin-bottom: 20px;'><strong>Adresă:</strong> $address</div>";
         $body .= "<div style='margin-bottom: 20px;'><strong>Preț total:</strong> $price lei</div>";
         $body .= "<h3>Produse:</h3>";
@@ -73,10 +76,11 @@ class OrderController extends Controller
     }
 
     // Istoricul comenzilor unui anumit user
-    public function getOrders($userId)
+    public function getOrders()
     {
+        $user = Auth::user();
 
-        $orders = Order::where('user_id', $userId)->get();
+        $orders = Order::where('user_id', $user->id)->get();
 
         return $orders;
     }

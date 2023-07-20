@@ -22,7 +22,7 @@ Route::post('/register', [App\Http\Controllers\API\UserController::class, 'regis
 Route::middleware(['auth:api'])->group(function () {
 
     // List Users
-    Route::middleware(['scope:admin,basic'])->get('/users', [App\Http\Controllers\API\UserController::class, 'getUsers']);
+    Route::middleware(['scope:admin'])->get('/users', [App\Http\Controllers\API\UserController::class, 'getUsers']);
 
     // Add User
     Route::middleware(['scope:admin'])->post('/user', [App\Http\Controllers\API\UserController::class, 'addUser']);
@@ -36,14 +36,6 @@ Route::middleware(['auth:api'])->group(function () {
     // Modificare basic user in admin
     Route::middleware(['scope:admin'])->post('/admin/{userId}', [App\Http\Controllers\API\UserController::class, 'makeAdmin']);
 });
-
-
-//Ruta pentru trimitere comenzii, inclusiv trimiterea de email
-Route::post('send-order', [App\Http\Controllers\OrderController::class, 'sendOrder']);
-//Ruta pentru obtinerea comenzilor unui client
-Route::get('orders/{userId}', [App\Http\Controllers\OrderController::class, 'getOrders']);
-//Ruta pentru obtinerea produselor corespunzatoare unei comenzi
-Route::get('order/{orderId}', [App\Http\Controllers\OrderController::class, 'getOrder']);
 
 
 // Rutele pentru categori
@@ -85,6 +77,31 @@ Route::middleware(['auth:api'])->group(function () {
 
     // Delete Product
     Route::middleware(['scope:admin'])->delete('/product/{productId}', [App\Http\Controllers\ProductController::class, 'deleteProduct']);
+});
+
+
+// Rutele pentru comenzi
+Route::middleware(['auth:api'])->group(function () {
+    //Ruta pentru trimitere comenzii, inclusiv trimiterea de email
+    Route::middleware(['scope:admin,basic'])->post('send-order', [App\Http\Controllers\OrderController::class, 'sendOrder']);
+    //Ruta pentru obtinerea comenzilor unui client
+    Route::middleware(['scope:admin,basic'])->get('orders', [App\Http\Controllers\OrderController::class, 'getOrders']);
+    //Ruta pentru obtinerea produselor corespunzatoare unei comenzi
+    Route::middleware(['scope:admin,basic'])->get('order/{orderId}', [App\Http\Controllers\OrderController::class, 'getOrder']);
+});
+
+
+// Ruta pentru verificare scope
+Route::middleware(['auth:api'])->group(function () {
+    Route::middleware(['scope:admin,basic'])->get('/role', function (Request $request) {
+
+
+        $user = Auth::user();
+
+        $userRole = $user->role()->first();
+
+        return response()->json(['role' => $userRole->role]);
+    });
 });
 
 
