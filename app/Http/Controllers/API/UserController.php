@@ -80,7 +80,7 @@ class UserController extends Controller
     function getUsers(Request $request)
     {
 
-        return User::get();
+        return User::join('roles', 'users.id', '=', 'roles.user_id')->select('users.*', 'roles.role')->get();
     }
 
     function addUser(Request $request)
@@ -104,15 +104,21 @@ class UserController extends Controller
         return response()->json(['message' => 'User updated successfully.']);
     }
 
-    function deleteUser(Request $request, $userId) {
+    function deleteUser(Request $request, $userId)
+    {
 
         try {
-            $user = User::findOrFail($userId);
+            $user = User::find($userId);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'message' => 'User not found.'
             ], 403);
         }
+        // stergerea rolului asociat user-ului
+        $user->role()->delete();
+
+        // stergerea comenzilor asociate user-ului
+        //$user->orders()->delete();
 
         $user->delete();
 
@@ -120,12 +126,13 @@ class UserController extends Controller
     }
 
     // Modificare basic user in admin
-    function makeAdmin(Request $request, $userId) {
+    function makeAdmin(Request $request, $userId)
+    {
 
         try {
             $user = User::findOrFail($userId);
 
-             // Actualizare coloană "role" la valoarea "admin"
+            // Actualizare coloană "role" la valoarea "admin"
             $user->role()->update(['role' => 'admin']);
 
         } catch (ModelNotFoundException $e) {

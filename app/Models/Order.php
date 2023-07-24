@@ -18,4 +18,9 @@ class Order extends Model
         'address',
         'price',
     ];
+
+    // public function user()
+    // {
+    //     return $this->belongsTo(User::class);
+    // }
 }
